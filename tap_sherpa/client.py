@@ -1,4 +1,4 @@
-"""Custom client handling, including SherpaStream base class."""
+"""Custom client handling for Sherpa API."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import typing as t
 from zeep import Client, Settings
 from zeep.transports import Transport
 from requests import Session
-from singer_sdk.streams import Stream
 from zeep.helpers import serialize_object
 import logging
 
@@ -35,7 +34,7 @@ class SherpaClient:
 
         Args:
             wsdl_url: The WSDL URL for the Sherpa SOAP service
-            tap: The tap instance to get secrets from
+            tap: The tap instance to get configuration from
             timeout: Request timeout in seconds
         """
         self.wsdl_url = wsdl_url
@@ -67,7 +66,7 @@ class SherpaClient:
         """
         # Add authentication parameters
         params = {
-            "securityCode": self.tap._get_security_code(),
+            "securityCode": self.tap.config["security_code"],
             **params
         }
 
@@ -94,7 +93,7 @@ class SherpaClient:
             Response from the SOAP service
         """
         # Add authentication parameters to all requests
-        kwargs["securityCode"] = self.tap._get_security_code()
+        kwargs["securityCode"] = self.tap.config["security_code"]
 
         # Ensure all parameters are strings
         kwargs = {k: str(v) for k, v in kwargs.items()}
@@ -136,30 +135,3 @@ class SherpaClient:
             items = [items]
             
         return items
-
-
-class SherpaStream(Stream):
-    """Stream class for Sherpa streams."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize the stream."""
-        super().__init__(*args, **kwargs)
-        self.client = SherpaClient(
-            wsdl_url=self.config["wsdl_url"],
-            tap=self._tap,
-        )
-
-    def get_records(
-        self,
-        context: Context | None,
-    ) -> t.Iterable[dict]:
-        """Return a generator of record-type dictionary objects.
-
-        Args:
-            context: Stream partition or context dictionary.
-
-        Yields:
-            Dictionary objects representing records from the SOAP service.
-        """
-        # This method should be implemented by specific stream classes
-        raise NotImplementedError("Stream classes must implement get_records")

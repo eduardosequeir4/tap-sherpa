@@ -6,7 +6,7 @@ import time
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from singer_sdk import typing as th
-from singer_sdk.streams import Stream
+from tap_sherpa.streams import SherpaStream
 from tap_sherpa.client import SherpaClient
 
 
@@ -45,7 +45,7 @@ class PaginationConfig:
         self.mode = mode
 
 
-class PaginatedStream(Stream):
+class PaginatedStream(SherpaStream):
     """Base class for streams with pagination support."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
